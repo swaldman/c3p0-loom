@@ -37,7 +37,7 @@ object `c3p0-loom` extends RootModule with JavaModule with PublishModule {
     }
     override def forkArgs = T {
       "-Dc3p0.jdbcUrl=jdbc:postgresql://localhost:5432/c3p0" ::
-      "-Dc3p0.taskRunnerFactoryClassName=com.mchange.v2.c3p0.loom.VirtualThreadPerTaskExecutorTaskRunnerFactory" ::
+      //"-Dc3p0.taskRunnerFactoryClassName=com.mchange.v2.c3p0.loom.VirtualThreadPerTaskExecutorTaskRunnerFactory" ::
       //"-Dcom.sun.management.jmxremote.port=38383" ::
       //"-Dcom.sun.management.jmxremote.authenticate=false" ::
       //"-Dcom.sun.management.jmxremote.ssl=false" ::
