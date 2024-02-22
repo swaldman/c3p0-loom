@@ -1,0 +1,99 @@
+import mill._
+import mill.api.{JarManifest,Result}
+import mill.scalalib._
+import mill.scalalib.publish._
+import mill.util.Jvm
+
+import java.nio.file.attribute.{PosixFilePermission => PFP}
+
+object Dependency {
+  val C3P0Version = "0.10.0-pre4-SNAPSHOT"
+  val C3P0 = ivy"com.mchange:c3p0:${C3P0Version}"
+  val C3P0Test = ivy"com.mchange:c3p0-test:${C3P0Version}"
+  val PgJdbc = ivy"org.postgresql:postgresql:42.6.0"
+  val JUnit = ivy"org.junit.vintage:junit-vintage-engine:5.10.2"
+}
+
+object `c3p0-loom` extends RootModule with JavaModule with PublishModule {
+  val organization = "com.mchange"
+  override def artifactName = T{"c3p0-loom"}
+  override def publishVersion = T{Dependency.C3P0Version}
+
+  def takeDigitsAsInt( s : String ) : Int = {
+    s.takeWhile( Character.isDigit ).toInt
+  }
+
+  require( takeDigitsAsInt( sys.props("java.runtime.version") ) >= 21, s"Bad build JVM: ${sys.props("java.runtime.version")} -- We expect to build under Java 21+." )
+
+  override def ivyDeps = T{
+    super.ivyDeps() ++ Agg(Dependency.C3P0)
+  }
+
+  object test extends JavaModule with TestModule.Junit5 {
+    override def moduleDeps = Seq(`c3p0-loom`)
+
+    override def ivyDeps = T{
+      super.ivyDeps() ++ Agg(Dependency.JUnit,Dependency.PgJdbc,Dependency.C3P0Test)
+    }
+    override def forkArgs = T {
+      "-Dc3p0.jdbcUrl=jdbc:postgresql://localhost:5432/c3p0" ::
+      "-Dc3p0.taskRunnerFactoryClassName=com.mchange.v2.c3p0.loom.VirtualThreadPerTaskExecutorTaskRunnerFactory" ::
+      //"-Dcom.sun.management.jmxremote.port=38383" ::
+      //"-Dcom.sun.management.jmxremote.authenticate=false" ::
+      //"-Dcom.sun.management.jmxremote.ssl=false" ::
+      //"-server" ::
+      //"-Xrunhprof:cpu=times,file=/tmp/java.hprof,doe=y,format=a" ::
+      //"-Xprof" ::
+      //"-Xrunhprof:file=/tmp/java.hprof,doe=y,format=b" ::
+      //"-verbose:class"
+      //"-ea" ::
+      Nil
+    }
+    def c3p0Benchmark = T {
+      this.runMain("com.mchange.v2.c3p0.test.C3P0BenchmarkApp")()
+    }
+    def c3p0Stats = T {
+      this.runMain("com.mchange.v2.c3p0.test.StatsTest")()
+    }
+    def c3p0Proxywrapper = T {
+      this.runMain("com.mchange.v2.c3p0.test.ProxyWrappersTest")()
+    }
+    def c3p0RawConnectionOp = T {
+      this.runMain("com.mchange.v2.c3p0.test.RawConnectionOpTest")()
+    }
+    def c3p0Load = T {
+      this.runMain("com.mchange.v2.c3p0.test.LoadPoolBackedDataSource")()
+    }
+    def c3p0PSLoad = T {
+      this.runMain("com.mchange.v2.c3p0.test.PSLoadPoolBackedDataSource")()
+    }
+    def c3p0InterruptedBatch = T {
+      this.runMain("com.mchange.v2.c3p0.test.InterruptedBatchTest")()
+    }
+    def c3p0Dispersion = T {
+      this.runMain("com.mchange.v2.c3p0.test.ConnectionDispersionTest")()
+    }
+    def c3p0OneThreadRepeat = T {
+      this.runMain("com.mchange.v2.c3p0.test.OneThreadRepeatedInsertOrQueryTest")()
+    }
+    def c3p0RefSer = T {
+      this.runMain("com.mchange.v2.c3p0.test.TestRefSerStuff")
+    }
+    def c3p0JavaBeanRef = T {
+      this.runMain("com.mchange.v2.c3p0.test.JavaBeanRefTest")
+    }
+  }
+
+  override def pomSettings = T {
+    PomSettings(
+      description = "A c3p0 TaskRunnerFactory that outsources asynchronous work to Java 21 virtual threads",
+      organization = organization,
+      url = "https://github.com/swaldman/c3p0-loom",
+      licenses = Seq(License.`LGPL-2.1-or-later`,License.`EPL-1.0`),
+      versionControl = VersionControl.github("swaldman", "c3p0-loom"),
+      developers = Seq(
+        Developer("swaldman", "Steve Waldman", "https://github.com/swaldman")
+      )
+    )
+  }
+}
