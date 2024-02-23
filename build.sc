@@ -4,10 +4,8 @@ import mill.scalalib._
 import mill.scalalib.publish._
 import mill.util.Jvm
 
-import java.nio.file.attribute.{PosixFilePermission => PFP}
-
 object Dependency {
-  val C3P0Version = "0.10.0-pre4-SNAPSHOT"
+  val C3P0Version = "0.10.0-pre4"
   val C3P0 = ivy"com.mchange:c3p0:${C3P0Version}"
   val C3P0Test = ivy"com.mchange:c3p0-test:${C3P0Version}"
   val PgJdbc = ivy"org.postgresql:postgresql:42.6.0"
