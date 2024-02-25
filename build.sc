@@ -5,7 +5,7 @@ import mill.scalalib.publish._
 import mill.util.Jvm
 
 object Dependency {
-  val C3P0Version = "0.10.0-pre4"
+  val C3P0Version = "0.10.0-pre5-SNAPSHOT"
   val C3P0 = ivy"com.mchange:c3p0:${C3P0Version}"
   val C3P0Test = ivy"com.mchange:c3p0-test:${C3P0Version}"
   val PgJdbc = ivy"org.postgresql:postgresql:42.6.0"
@@ -35,6 +35,7 @@ object `c3p0-loom` extends RootModule with JavaModule with PublishModule {
     }
     override def forkArgs = T {
       "-Dc3p0.jdbcUrl=jdbc:postgresql://localhost:5432/c3p0" ::
+      "-Djdk.tracePinnedThreads=full" ::
       //"-Dc3p0.taskRunnerFactoryClassName=com.mchange.v2.c3p0.loom.VirtualThreadPerTaskExecutorTaskRunnerFactory" ::
       //"-Dcom.sun.management.jmxremote.port=38383" ::
       //"-Dcom.sun.management.jmxremote.authenticate=false" ::
