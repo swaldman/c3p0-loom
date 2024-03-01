@@ -6,7 +6,7 @@ the [c3p0](https://www.mchange.com/projects/c3p0/) Connection pooling and manage
 In particular, it provides implementations of [`com.mchange.v2.c3p0.TaskRunnerFactory`](https://www.mchange.com/projects/c3p0/apidocs/com/mchange/v2/c3p0/TaskRunnerFactory.html)
 that you can use by setting the configuration property [`taskRunnerFactoryClassName`](https://www.mchange.com/projects/c3p0/#taskRunnerFactoryClassName).
 
-Currently c3p0-loom includes two implementations:
+Currently c3p0-loom includes two implementations of `TaskRunnerFactory`:
 
 * [`VirtualThreadPerTaskExecutorTaskRunnerFactory`](src/com/mchange/v2/c3p0/loom/VirtualThreadPerTaskExecutorTaskRunnerFactory.java)
 * [`UninstrumentedVirtualThreadPerTaskTaskRunnerFactory`](src/com/mchange/v2/c3p0/loom/UninstrumentedVirtualThreadPerTaskTaskRunnerFactory.java)

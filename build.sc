@@ -47,6 +47,7 @@ object `c3p0-loom` extends RootModule with JavaModule with PublishModule {
       //"-Xrunhprof:file=/tmp/java.hprof,doe=y,format=b" ::
       //"-verbose:class"
       //"-ea" ::
+      s"""-Djava.util.logging.config.file=${millSourcePath / "conf-logging" / "logging.properties"}""" ::
       Nil
     }
     def c3p0Benchmark = T {
