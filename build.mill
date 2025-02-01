@@ -1,3 +1,5 @@
+package build
+
 import mill._
 import mill.api.{JarManifest,Result}
 import mill.scalalib._
@@ -5,14 +7,14 @@ import mill.scalalib.publish._
 import mill.util.Jvm
 
 object Dependency {
-  val C3P0Version = "0.10.1"
+  val C3P0Version = "0.10.2"
   val C3P0 = ivy"com.mchange:c3p0:${C3P0Version}"
   val C3P0Test = ivy"com.mchange:c3p0-test:${C3P0Version}"
   val PgJdbc = ivy"org.postgresql:postgresql:42.6.0"
   val JUnit = ivy"org.junit.vintage:junit-vintage-engine:5.10.2"
 }
 
-object `c3p0-loom` extends RootModule with JavaModule with PublishModule {
+object `package` extends RootModule with JavaModule with PublishModule {
   val organization = "com.mchange"
   override def artifactName = T{"c3p0-loom"}
   override def publishVersion = T{Dependency.C3P0Version}
@@ -28,7 +30,7 @@ object `c3p0-loom` extends RootModule with JavaModule with PublishModule {
   }
 
   object test extends JavaModule with TestModule.Junit5 {
-    override def moduleDeps = Seq(`c3p0-loom`)
+    override def moduleDeps = Seq(build)
 
     override def ivyDeps = T{
       super.ivyDeps() ++ Agg(Dependency.JUnit,Dependency.PgJdbc,Dependency.C3P0Test)
