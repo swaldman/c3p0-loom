@@ -7,7 +7,7 @@ import mill.scalalib.publish._
 import mill.util.Jvm
 
 object Dependency {
-  val C3P0Version = "0.11.0"
+  val C3P0Version = "0.11.1"
   val C3P0 = ivy"com.mchange:c3p0:${C3P0Version}"
   val C3P0Test = ivy"com.mchange:c3p0-test:${C3P0Version}"
   val PgJdbc = ivy"org.postgresql:postgresql:42.6.0"
