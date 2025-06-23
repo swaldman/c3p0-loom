@@ -7,17 +7,22 @@ import mill.scalalib.publish._
 import mill.util.Jvm
 
 object Dependency {
-  val C3P0Version = "0.11.1"
+  val C3P0Version = "0.11.2"
+
   val C3P0 = ivy"com.mchange:c3p0:${C3P0Version}"
   val C3P0Test = ivy"com.mchange:c3p0-test:${C3P0Version}"
   val PgJdbc = ivy"org.postgresql:postgresql:42.6.0"
   val JUnit = ivy"org.junit.vintage:junit-vintage-engine:5.10.2"
 }
 
-object `package` extends RootModule with JavaModule with PublishModule {
+object `package` extends RootModule with JavaModule with SonatypeCentralPublishModule {
   val organization = "com.mchange"
+  
   override def artifactName = T{"c3p0-loom"}
+
   override def publishVersion = T{Dependency.C3P0Version}
+
+  override def sonatypeCentralShouldRelease: T[Boolean] = Task { false }
 
   def takeDigitsAsInt( s : String ) : Int = {
     s.takeWhile( Character.isDigit ).toInt
@@ -49,7 +54,7 @@ object `package` extends RootModule with JavaModule with PublishModule {
       //"-Xrunhprof:file=/tmp/java.hprof,doe=y,format=b" ::
       //"-verbose:class"
       //"-ea" ::
-      s"""-Djava.util.logging.config.file=${millSourcePath / "conf-logging" / "logging.properties"}""" ::
+      s"""-Djava.util.logging.config.file=${moduleDir / "conf-logging" / "logging.properties"}""" ::
       Nil
     }
     def c3p0Benchmark = T {
