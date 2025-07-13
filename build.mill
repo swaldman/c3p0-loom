@@ -1,46 +1,42 @@
+//| mill-version: 1.0.0
+//| mill-jvm-version: 21
 package build
 
 import mill._
-import mill.api.{JarManifest,Result}
+import mill.api.Result
 import mill.scalalib._
 import mill.scalalib.publish._
-import mill.util.Jvm
+import mill.util.{JarManifest,Jvm}
 
 object Dependency {
-  val C3P0Version = "0.11.2"
+  val C3P0Version = "0.11.3-SNAPSHOT"
 
-  val C3P0 = ivy"com.mchange:c3p0:${C3P0Version}"
-  val C3P0Test = ivy"com.mchange:c3p0-test:${C3P0Version}"
-  val PgJdbc = ivy"org.postgresql:postgresql:42.6.0"
-  val JUnit = ivy"org.junit.vintage:junit-vintage-engine:5.10.2"
+  val C3P0 = mvn"com.mchange:c3p0:${C3P0Version}"
+  val C3P0Test = mvn"com.mchange:c3p0-test:${C3P0Version}"
+  val PgJdbc = mvn"org.postgresql:postgresql:42.6.0"
+  val JUnit = mvn"org.junit.vintage:junit-vintage-engine:5.10.2"
 }
 
-object `package` extends RootModule with JavaModule with SonatypeCentralPublishModule {
+object `package` extends JavaModule with SonatypeCentralPublishModule {
   val organization = "com.mchange"
   
-  override def artifactName = T{"c3p0-loom"}
+  override def artifactName = Task{"c3p0-loom"}
 
-  override def publishVersion = T{Dependency.C3P0Version}
+  override def publishVersion = Task{Dependency.C3P0Version}
 
   override def sonatypeCentralShouldRelease: T[Boolean] = Task { false }
 
-  def takeDigitsAsInt( s : String ) : Int = {
-    s.takeWhile( Character.isDigit ).toInt
-  }
-
-  require( takeDigitsAsInt( sys.props("java.runtime.version") ) >= 21, s"Bad build JVM: ${sys.props("java.runtime.version")} -- We expect to build under Java 21+." )
-
-  override def ivyDeps = T{
-    super.ivyDeps() ++ Agg(Dependency.C3P0)
+  override def mvnDeps = Task{
+    super.mvnDeps() ++ Seq(Dependency.C3P0)
   }
 
   object test extends JavaModule with TestModule.Junit5 {
     override def moduleDeps = Seq(build)
 
-    override def ivyDeps = T{
-      super.ivyDeps() ++ Agg(Dependency.JUnit,Dependency.PgJdbc,Dependency.C3P0Test)
+    override def mvnDeps = Task{
+      super.mvnDeps() ++ Seq(Dependency.JUnit,Dependency.PgJdbc,Dependency.C3P0Test)
     }
-    override def forkArgs = T {
+    override def forkArgs = Task {
       "-Dc3p0.jdbcUrl=jdbc:postgresql://localhost:5432/c3p0" ::
       "-Djdk.tracePinnedThreads=full" ::
       //"-Dc3p0.taskRunnerFactoryClassName=com.mchange.v2.c3p0.loom.VirtualThreadPerTaskExecutorTaskRunnerFactory" ::
@@ -57,42 +53,45 @@ object `package` extends RootModule with JavaModule with SonatypeCentralPublishM
       s"""-Djava.util.logging.config.file=${moduleDir / "conf-logging" / "logging.properties"}""" ::
       Nil
     }
-    def c3p0Benchmark = T {
+    def c3p0Benchmark = Task {
       this.runMain("com.mchange.v2.c3p0.test.C3P0BenchmarkApp")()
     }
-    def c3p0Stats = T {
+    def c3p0Stats = Task {
       this.runMain("com.mchange.v2.c3p0.test.StatsTest")()
     }
-    def c3p0Proxywrapper = T {
+    def c3p0Proxywrapper = Task {
       this.runMain("com.mchange.v2.c3p0.test.ProxyWrappersTest")()
     }
-    def c3p0RawConnectionOp = T {
+    def c3p0RawConnectionOp = Task {
       this.runMain("com.mchange.v2.c3p0.test.RawConnectionOpTest")()
     }
-    def c3p0Load = T {
+    def c3p0Load = Task {
       this.runMain("com.mchange.v2.c3p0.test.LoadPoolBackedDataSource")()
     }
-    def c3p0PSLoad = T {
+    def c3p0PSLoad = Task {
       this.runMain("com.mchange.v2.c3p0.test.PSLoadPoolBackedDataSource")()
     }
-    def c3p0InterruptedBatch = T {
+    def c3p0InterruptedBatch = Task {
       this.runMain("com.mchange.v2.c3p0.test.InterruptedBatchTest")()
     }
-    def c3p0Dispersion = T {
+    def c3p0Dispersion : Task.Simple[Unit] = Task {
       this.runMain("com.mchange.v2.c3p0.test.ConnectionDispersionTest")()
     }
-    def c3p0OneThreadRepeat = T {
+    def c3p0OneThreadRepeat : Task.Simple[Unit] = Task {
       this.runMain("com.mchange.v2.c3p0.test.OneThreadRepeatedInsertOrQueryTest")()
     }
-    def c3p0RefSer = T {
+    def c3p0RefSer : Task.Simple[Unit] = Task {
       this.runMain("com.mchange.v2.c3p0.test.TestRefSerStuff")
     }
-    def c3p0JavaBeanRef = T {
+    def c3p0JavaBeanRef : Task.Simple[Unit] = Task {
       this.runMain("com.mchange.v2.c3p0.test.JavaBeanRefTest")
+    }
+    def c3p0DynamicPreparedStatement : Task.Simple[Unit] = Task {
+      this.runMain("com.mchange.v2.c3p0.test.DynamicPreparedStatementTest")
     }
   }
 
-  override def pomSettings = T {
+  override def pomSettings = Task {
     PomSettings(
       description = "A c3p0 TaskRunnerFactory that outsources asynchronous work to Java 21 virtual threads",
       organization = organization,
