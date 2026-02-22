@@ -1,4 +1,4 @@
-//| mill-version: 1.0.0
+//| mill-version: 1.0.6
 //| mill-jvm-version: 21
 package build
 
@@ -9,7 +9,7 @@ import mill.scalalib.publish._
 import mill.util.{JarManifest,Jvm}
 
 object Dependency {
-  val C3P0Version = "0.11.3-SNAPSHOT"
+  val C3P0Version = "0.12.0"
 
   val C3P0 = mvn"com.mchange:c3p0:${C3P0Version}"
   val C3P0Test = mvn"com.mchange:c3p0-test:${C3P0Version}"
