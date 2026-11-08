@@ -1,4 +1,4 @@
-//| mill-version: 1.1.6
+//| mill-version: 1.1.9
 //| mill-jvm-version: 21
 package build
 
@@ -9,7 +9,7 @@ import mill.scalalib.publish._
 import mill.util.{JarManifest,Jvm}
 
 object Dependency {
-  val C3P0Version = "0.14.1"
+  val C3P0Version = "0.15.0"
 
   val C3P0 = mvn"com.mchange:c3p0:${C3P0Version}"
   val C3P0Test = mvn"com.mchange:c3p0-test:${C3P0Version}"
@@ -49,48 +49,77 @@ object `package` extends JavaModule with SonatypeCentralPublishModule {
       //"-Xprof" ::
       //"-Xrunhprof:file=/tmp/java.hprof,doe=y,format=b" ::
       //"-verbose:class"
-      //"-ea" ::
+      "-ea" ::
       s"""-Djava.util.logging.config.file=${moduleDir / "conf-logging" / "logging.properties"}""" ::
       Nil
     }
-    def c3p0Benchmark = Task {
+
+    // these are very inelegantly copied from the c3p0 build
+    def c3p0Benchmark() = Task.Command {
       this.runMain("com.mchange.v2.c3p0.test.C3P0BenchmarkApp")()
     }
-    def c3p0Stats = Task {
+    def c3p0Stats() = Task.Command {
       this.runMain("com.mchange.v2.c3p0.test.StatsTest")()
     }
-    def c3p0Proxywrapper = Task {
+    def c3p0Proxywrapper() = Task.Command {
       this.runMain("com.mchange.v2.c3p0.test.ProxyWrappersTest")()
     }
-    def c3p0RawConnectionOp = Task {
+    def c3p0RawConnectionOp() = Task.Command {
       this.runMain("com.mchange.v2.c3p0.test.RawConnectionOpTest")()
     }
-    def c3p0Load = Task {
+    def c3p0Load() = Task.Command {
       this.runMain("com.mchange.v2.c3p0.test.LoadPoolBackedDataSource")()
     }
-    def c3p0PSLoad = Task {
+    def c3p0PSLoad() = Task.Command {
       this.runMain("com.mchange.v2.c3p0.test.PSLoadPoolBackedDataSource")()
     }
-    def c3p0InterruptedBatch = Task {
+    def c3p0InterruptedBatch() = Task.Command {
       this.runMain("com.mchange.v2.c3p0.test.InterruptedBatchTest")()
     }
-    def c3p0Dispersion : Task.Simple[Unit] = Task {
+    def c3p0Dispersion() = Task.Command {
       this.runMain("com.mchange.v2.c3p0.test.ConnectionDispersionTest")()
     }
-    def c3p0OneThreadRepeat : Task.Simple[Unit] = Task {
+    def c3p0OneThreadRepeat() = Task.Command {
       this.runMain("com.mchange.v2.c3p0.test.OneThreadRepeatedInsertOrQueryTest")()
     }
-    def c3p0RefSer : Task.Simple[Unit] = Task {
-      this.runMain("com.mchange.v2.c3p0.test.TestRefSerStuff")
+    def c3p0RefSer() = Task.Command {
+      this.runMain("com.mchange.v2.c3p0.test.TestRefSerStuff")()
     }
-    def c3p0JavaBeanRef : Task.Simple[Unit] = Task {
-      this.runMain("com.mchange.v2.c3p0.test.JavaBeanRefTest")
+    def c3p0JavaBeanRef() = Task.Command {
+      this.runMain("com.mchange.v2.c3p0.test.JavaBeanRefTest")()
     }
-    def c3p0DynamicPreparedStatement : Task.Simple[Unit] = Task {
-      this.runMain("com.mchange.v2.c3p0.test.DynamicPreparedStatementTest")
+    def c3p0DynamicPreparedStatement() = Task.Command {
+      this.runMain("com.mchange.v2.c3p0.test.DynamicPreparedStatementTest")()
+    }
+    def c3p0StatementState() = Task.Command {
+      this.runMain("com.mchange.v2.c3p0.test.StatementStateTest")()
+    }
+    // Statement cache concurrency harnesses. These need no database -- they run against an
+    // in-process fake JDBC driver -- and exit nonzero on failure, so they work as regression
+    // checks. Best run with assertions on, so the cache's own internal assertions participate:
+    //
+    //   mill test.c3p0StmtCacheStress
+    //
+    // See test/src/com/mchange/v2/c3p0/test/stmt/StatementCacheStressHarness.java for the knobs.
+    def c3p0StmtCacheStress() = Task.Command {
+      this.runMain("com.mchange.v2.c3p0.test.stmt.StatementCacheStressHarness")()
+    }
+    def c3p0StmtCacheFullStack() = Task.Command {
+      this.runMain("com.mchange.v2.c3p0.test.stmt.StatementCacheFullStackHarness")()
+    }
+    // Config-refresh lock ordering. No database needed; exits nonzero if the contended
+    // workload stalls. A harness rather than a JUnit test because a lock cycle cannot be
+    // recovered from in-process -- see the class comment.
+    //
+    //   mill test.c3p0ConfigLockOrdering
+    //
+    def c3p0ConfigLockOrdering() = Task.Command {
+      this.runMain("com.mchange.v2.c3p0.ConfigRefreshLockOrderingHarness")()
+    }
+    def c3p0StmtCacheIssue196() = Task.Command {
+      this.runMain("com.mchange.v2.c3p0.test.stmt.Issue196Demo")()
     }
   }
-
   override def pomSettings = Task {
     PomSettings(
       description = "A c3p0 TaskRunnerFactory that outsources asynchronous work to Java 21 virtual threads",
